@@ -22,7 +22,7 @@ For every tenant, the service:
 
 ### In scope
 
-- Java 21 / Spring Boot 3 REST service, PostgreSQL, `docker compose up` runs everything.
+- Java 21 / Spring Boot 4 REST service, PostgreSQL, `docker compose up` runs everything.
 - Any number of tenants (**N tenants**), each defined by configuration.
 - Two source types for this exercise: a tenant-specific API (Tenant A) and the `generic-backup-provider` (Tenant B, and fallback for others).
 - Sync triggered manually per tenant (REST endpoint) and once at startup. Automatic scheduling is a bonus (phase 2).
@@ -249,7 +249,7 @@ second  minute  hour  day-of-month  month  day-of-week
 | Backoff                | **~1 s, 2 s, 4 s** + jitter  | Exponential, as required by the brief: gives a struggling provider time to recover. Jitter spreads retries of different tenants. Worst case ≈ 7 s of waiting before falling back. |
 | Connect timeout        | **5 s**                      | A healthy API accepts a connection in milliseconds; 5 s means it is unreachable.                                                                                                  |
 | Read timeout           | **10 s**                     | A full network payload can be large (Source A returns all stations with all connections); 10 s leaves room while still failing fast.                                              |
-| Anti-wipe guard        | **50 %** of stored network   | No airline loses half of its network between two syncs; such a drop is far more likely a broken or truncated response.                                                            |
+| Anti-wipe guard        | **50 %** of stored routes of covered types | No airline loses half of its network between two syncs; such a drop is far more likely a broken or truncated response.                                                            |
 | Stale threshold        | **2 × sync interval** (12 h) | Tolerates one failed run (temporary outage) but raises the alarm on the second.                                                                                                   |
 
 ### Plugin contract
@@ -404,7 +404,7 @@ Covered types: `DIRECT` only.
 
 **7. Brief:** (implicit) A broken API returning an empty or truncated list
 
-- **Solution:** Anti-wipe guard (empty or < 50 % of stored network → `REJECTED`).
+- **Solution:** Anti-wipe guard (empty or < 50 % of stored routes of the types the source covers → `REJECTED`).
 - **Why:** Without it, a "successful" but empty response would delete a customer's whole network — the most damaging failure for an IBE.
 
 ### 4.1 Retry policy (per source call)
@@ -424,7 +424,7 @@ Covered types: `DIRECT` only.
 
 - A sync is applied in **one transaction**; any error rolls back everything.
 - **Idempotent**: same input ⇒ 0 changes, no duplicates.
-- **Anti-wipe guard**: an empty snapshot, or one smaller than 50 % of the stored network (configurable per tenant), is not applied → run `REJECTED`.
+- **Anti-wipe guard**: an empty snapshot, or one smaller than 50 % of the stored routes **of the types the source covers** (configurable per tenant), is not applied → run `REJECTED`. Counting only covered types keeps the guard consistent with R12: a fallback to a direct-only source is compared with stored direct routes only.
 - Only one sync per tenant at a time; a concurrent trigger is refused.
 
 ### 4.4 Scenario matrix
