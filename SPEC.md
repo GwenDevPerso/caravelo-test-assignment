@@ -69,7 +69,7 @@ The brief invites candidates to state their assumptions. These were made where t
 | A5  | When a tenant falls back to a source that covers fewer route types, routes it cannot see are kept (R12).                                                | A fallback must not create false removals.                                                                                                                                 |
 | A6  | Only `(origin, destination)` pairs matter; schedules, times, prices and station metadata are out of scope.                                              | The IBE needs to know which routes exist; schedules belong to other systems.                                                                                               |
 | A7  | A single service instance runs at a time.                                                                                                               | Simplest for the exercise; a multi-instance deployment would need a distributed lock (documented as future work).                                                          |
-| A8  | The example API key in the `generic-backup-provider` URL is not a real secret, but keys are still injected through environment variables.               | The brief forbids real secrets in the repository.                                                                                                                          |
+| A8  | The example API key in the `generic-backup-provider` URL is not a real secret, but keys are still injected through environment variables. The only committed defaults are local demo values (`demo-key` for the mock, `routesync` for a local database). | The brief forbids real secrets in the repository.                                                                                                                          |
 | A9  | Default values (sync interval, retries, timeouts, guard threshold) are initial choices, not requirements.                                               | The brief gives no figures; see §2 _Default values and assumptions_.                                                                                                       |
 | A10 | The provided endpoints are Google Apps Script URLs, which may answer with a redirect, or with an HTML page and status 200 on error.                     | Redirects are followed; any non-JSON body is treated as a malformed response.                                                                                              |
 
@@ -246,7 +246,7 @@ second  minute  hour  day-of-month  month  day-of-week
 | Sync interval          | every **6 h**                | A route network changes rarely (a few times a month). 6 h shows a change the same day without loading the airlines' APIs for nothing.                                             |
 | Offset between tenants | **30 min**                   | Avoids all tenants calling the APIs at the same moment, especially when several use the same `generic-backup-provider`.                                                           |
 | Retry attempts         | **3**                        | Enough to absorb a short glitch (network blip, restart) without delaying the fallback too long.                                                                                   |
-| Backoff                | **~1 s, 2 s, 4 s** + jitter  | Exponential, as required by the brief: gives a struggling provider time to recover. Jitter spreads retries of different tenants. Worst case ≈ 7 s of waiting before falling back. |
+| Backoff                | **~1 s, then 2 s** + jitter  | Exponential, as required by the brief: gives a struggling provider time to recover. Jitter (±20 %) spreads retries of different tenants. 3 attempts = 2 waits: worst case ≈ 3 s of waiting (plus timeouts) before falling back. |
 | Connect timeout        | **5 s**                      | A healthy API accepts a connection in milliseconds; 5 s means it is unreachable.                                                                                                  |
 | Read timeout           | **10 s**                     | A full network payload can be large (Source A returns all stations with all connections); 10 s leaves room while still failing fast.                                              |
 | Anti-wipe guard        | **50 %** of stored routes of covered types | No airline loses half of its network between two syncs; such a drop is far more likely a broken or truncated response.                                                            |
@@ -259,6 +259,7 @@ public interface RouteSourceAdapter {
     String type();                                   // "generic-backup-provider", "tenant-a-stations", "json-mapping", ...
     Set<RouteType> coveredTypes();                   // which route types this source can see
     SourceResult fetch(TenantSourceConfig config);   // fetch + map to canonical routes
+    default void validate(TenantSourceConfig config) {}   // startup check of the tenant's config (added for §6.5)
 }
 
 public record CanonicalRoute(String origin, String destination, RouteType type, Set<String> via) {}
@@ -340,7 +341,7 @@ One item per **scheduled flight**.
 | `dep_iata`                                                                              | `origin`      | normalise, validate                                                          |
 | `arr_iata`                                                                              | `destination` | normalise, validate                                                          |
 | —                                                                                       | `type`        | always `DIRECT` (a flight record is non-stop)                                |
-| `airline_iata`                                                                          | —             | filter: must equal the tenant's `airline-iata` (`Y4`)                        |
+| `airline_iata`                                                                          | —             | filter: must equal the tenant's `airline-iata` (`Y4`), compared after trim + upper-case (R2)                        |
 | `cs_airline_iata`, `cs_flight_iata`, `cs_flight_number`                                 | —             | if set, the record is a codeshare marketed under another flight: ignored     |
 | `days`                                                                                  | —             | empty or missing → flight not operating → ignored                            |
 | `dep_icao`, `arr_icao`                                                                  | —             | fallback only if `*_iata` is missing (not resolved: record rejected, see R3) |
@@ -352,15 +353,15 @@ Covered types: `DIRECT` only.
 
 | #   | Inconsistency                                                                                                    | Resolution                                                                                                                                                                                         |
 | --- | ---------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R1  | Same pair appears several times (several flights per day, both directions listed per flight)                     | De-duplicate on `(origin, destination)`.                                                                                                                                                           |
+| R1  | Same pair appears several times (several flights per day, both directions listed per flight)                     | De-duplicate on `(origin, destination)`. In Source A a duplicate inside one list is unexpected: one `MappingIssue` per extra copy, `via` sets of duplicate connecting entries are unioned. In Source B several flights per pair are normal: no issue.                                                                                                                                                           |
 | R2  | Lower-case codes, surrounding spaces                                                                             | Trim + upper-case.                                                                                                                                                                                 |
 | R3  | Code null, empty or not `^[A-Z]{3}$`                                                                             | Record rejected, `MappingIssue` logged, sync continues.                                                                                                                                            |
-| R4  | `origin == destination`                                                                                          | Rejected.                                                                                                                                                                                          |
+| R4  | `origin == destination`                                                                                          | Rejected, `MappingIssue` logged.                                                                                                                                                                                          |
 | R5  | Source B record for another airline                                                                              | Ignored.                                                                                                                                                                                           |
 | R6  | Route present in one direction only                                                                              | Kept as-is; return route never inferred.                                                                                                                                                           |
 | R7  | A and B disagree on the network                                                                                  | **No merge.** The tenant's primary source is the source of truth; the fallback is used only when the primary fails. Differences found in the sample data are listed in `docs/mapping-analysis.md`. |
 | R8  | Station with no routes                                                                                           | Nothing stored.                                                                                                                                                                                    |
-| R9  | Source A lists direct routes twice (`direct[]` and `connection[]` with `routeDirect = 1`) and the lists disagree | Union; the route is `DIRECT`; `MappingIssue` logged.                                                                                                                                               |
+| R9  | Source A lists direct routes twice (`direct[]` and `connection[]` with `routeDirect = 1`) and the lists disagree | Union; the route is `DIRECT`; `MappingIssue` logged. A station with no `connection[routeDirect = 1]` entry at all only uses `direct[]`: nothing to compare, no issue.                                                                                                                                               |
 | R10 | `routeName` ≠ `stationCode + arrivalStation`                                                                     | Codes win; `MappingIssue` logged.                                                                                                                                                                  |
 | R11 | `connectionStation` empty, invalid, or contains origin/destination                                               | Bad codes dropped from `via`; route kept; `MappingIssue` logged.                                                                                                                                   |
 | R12 | Fallback source covers fewer route types than the primary (B sees no connecting routes)                          | The diff only compares types covered by the source used: a fallback to B never removes `CONNECTING` routes.                                                                                        |
@@ -374,7 +375,7 @@ Covered types: `DIRECT` only.
 
 **1. Brief:** _"Implement retry logic with exponential backoff for external API failures"_
 
-- **Solution:** 3 attempts, ~1/2/4 s with jitter; only transient errors retried.
+- **Solution:** 3 attempts, ~1 s then ~2 s with jitter; only transient errors retried.
 - **Why:** Backoff gives a struggling provider time to recover; jitter avoids all tenants retrying at the same instant; retrying a `401` or a broken JSON is useless and only delays the fallback.
 
 **2. Brief:** _"plus a sensible fallback or degradation strategy"_
@@ -409,7 +410,7 @@ Covered types: `DIRECT` only.
 
 ### 4.1 Retry policy (per source call)
 
-- Up to 3 attempts, exponential backoff with jitter (~1 s, 2 s, 4 s).
+- Up to 3 attempts, exponential backoff with jitter (~1 s before the 2nd, ~2 s before the 3rd); a `Retry-After` in seconds replaces the backoff (capped at 30 s).
 - Timeouts: connect 5 s, read 10 s.
 - **Retried**: timeout, connection error, HTTP 5xx, HTTP 429 (honour `Retry-After`).
 - **Not retried**: HTTP 401/403, 400/404, malformed payload — deterministic, retrying is useless.
@@ -507,5 +508,72 @@ Each criterion is covered by at least one automated test.
 
 **Delivery**
 
-- **AC19** — `docker compose up` starts PostgreSQL and the service; a first sync of every tenant runs at startup.
+- **AC19** — `docker compose up` starts PostgreSQL and the service; a first sync of every tenant runs at startup. The startup sync (and a failing tenant not blocking the others) is covered by an automated test; the Compose half is a documented manual smoke check (README *Run*), since building the image inside the test suite would make `./mvnw verify` slow and dependent on Docker build.
 - **AC20** — `./mvnw verify` runs all tests green.
+
+---
+
+## 6. REST API and definitions
+
+Added before implementation to remove the ambiguities found when reviewing v1 (endpoint paths, `MODIFIED`, error count, staleness).
+
+### 6.1 Definitions
+
+- **`MODIFIED`**: a stored route whose `type` or `via` set differs in the new snapshot. Both old and new values are recorded.
+- **Error count**: number of runs of the tenant that ended `FAILED` or `REJECTED` (monotonic, never reset; AC10).
+- **Stale**: no `SUCCESS` or `DEGRADED` run finished (`finishedAt`) within the stale threshold (default **12 h**, configurable per tenant), or no successful run at all.
+- **First sync**: with nothing stored, a non-empty snapshot is applied as is (all routes `ADDED`); an empty snapshot is `REJECTED`.
+- **Statuses** of a run: `RUNNING`, `SUCCESS` (primary source), `DEGRADED` (a fallback source), `REJECTED` (guard), `FAILED` (all sources failed, or persistence failed).
+- **Correlation id** = the sync run id (UUID).
+- **Database unavailable**: the run is reported `FAILED` (response and logs) even if it could not be recorded. A run left `RUNNING` by a crash or a lost database is marked `FAILED` ("interrupted") at the next startup, so it counts in the error count.
+
+### 6.2 Endpoints
+
+All paths under `/api`. Unknown tenant → `404`. Errors use RFC 9457 `application/problem+json`; a `400` on a query parameter adds a `parameter` property naming it (`"parameter": "origin"`).
+
+| Method & path | Success | Errors |
+| --- | --- | --- |
+| `GET /api/tenants` | `200` list of configured tenants | — |
+| `GET /api/tenants/{tenantId}/routes?origin=&destination=&type=` | `200` routes grouped by origin | `400` invalid IATA code or type, `404` |
+| `GET /api/tenants/{tenantId}/changes?limit=` | `200` changes, newest first (`limit` default 100, 1–1000) | `400`, `404` |
+| `POST /api/tenants/{tenantId}/sync` | `200` the finished run (whatever its status, including `FAILED` when the database is unavailable) | `404`, `409` a sync of this tenant is already running or the tenant is disabled (no run recorded) |
+| `GET /api/tenants/{tenantId}/health` | `200` health | `404` |
+
+### 6.3 Response shapes
+
+```jsonc
+// GET /api/tenants
+[{ "tenantId": "tenant-a", "airlineIata": "Y4", "enabled": true, "sources": ["tenant-a-stations", "generic-backup-provider"] }]
+
+// GET /api/tenants/tenant-a/routes?origin=ACA   — origins and destinations sorted
+{ "ACA": ["GDL", "MEX", "TIJ"] }
+
+// GET /api/tenants/tenant-a/changes
+[{ "runId": "…uuid…", "changeType": "MODIFIED", "origin": "ACA", "destination": "CUN",
+   "oldType": "CONNECTING", "newType": "DIRECT", "oldVia": ["MEX"], "newVia": [],
+   "detectedAt": "2026-11-05T10:00:00Z" }]
+
+// POST /api/tenants/tenant-a/sync
+{ "runId": "…uuid…", "tenantId": "tenant-a", "status": "DEGRADED", "sourceUsed": "generic-backup-provider",
+  "startedAt": "…", "finishedAt": "…", "routeCount": 412, "added": 3, "removed": 1, "modified": 0,
+  "issueCount": 2, "error": null }
+
+// GET /api/tenants/tenant-a/health
+{ "tenantId": "tenant-a", "enabled": true, "lastSuccessAt": "…", "lastStatus": "SUCCESS",
+  "lastSourceUsed": "tenant-a-stations", "lastError": null, "errorCount": 0, "stale": false, "routeCount": 412 }
+```
+
+For `ADDED` the old fields are `null`, for `REMOVED` the new ones. `issueCount` is the number of `MappingIssue`s of the run; the issues themselves are logged (rule id, record, reason), not exposed.
+
+### 6.4 Startup and local demo
+
+- At startup every enabled tenant is synced once, in the background, one after the other (`caravelo.sync.on-startup`, default `true`).
+- `docker compose up` also starts a `mock-sources` WireMock container serving the sample payloads (`tenant1.json` = Source A, `tenant2.json` = Source B). Real URLs and key replace them through environment variables (`TENANT_A_URL`, `BACKUP_PROVIDER_URL`, `BACKUP_PROVIDER_KEY`).
+- The backup provider key is sent as the `api_key` query parameter. Its response is either a JSON array of flights or an object whose `response` field is that array.
+- Tenant A's API answers a JSON array of stations (format §3.2).
+
+### 6.5 Phase 2: `json-mapping` and scheduler
+
+- `json-mapping` mapping keys: `items` (path to the array of route records, from the payload root, e.g. `$.data.routes[*]`), `origin` and `destination` (paths relative to one record, e.g. `$.from`, `$.legs[0].to`). Supported path syntax: `$`, `.field`, `[n]`, and `[*]` at the end of `items`. Records are normalised and validated with R1–R4 (issues logged); every route is `DIRECT` and the covered type is `DIRECT` (a format with connections needs its own adapter).
+- An invalid mapping (missing `items` / `origin` / `destination`, unsupported path) disables the tenant at startup like an unknown adapter.
+- Scheduler: each enabled tenant is synced on its `sync-cron` (default `0 0 */6 * * *`, service time zone). A scheduled run that finds a sync already running for the tenant is skipped and logged, not queued. `caravelo.sync.scheduler-enabled` (default `true`) turns it off.
