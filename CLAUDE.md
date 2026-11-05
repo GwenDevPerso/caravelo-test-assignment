@@ -26,9 +26,11 @@ Java 21 / Spring Boot 4 / PostgreSQL. Multi-tenant route network sync (see `SPEC
 
 ## Tests
 
+- Tests for a new AC are written first by the `test-designer` subagent (spec-only, never sees `src/main`), then the implementation makes them pass.
 - Every acceptance criterion `ACn` in `SPEC.md` §5 has at least one test whose name or `@DisplayName` starts with `ACn`.
 - Unit tests: JUnit 5 + Mockito. Integration: Testcontainers PostgreSQL + WireMock for external APIs.
 - Run `./mvnw verify` and see it green before claiming a task done (needs Docker running).
+- Before committing a feature, run the `spec-reviewer` subagent and address its blocking findings.
 
 ## Commands
 
