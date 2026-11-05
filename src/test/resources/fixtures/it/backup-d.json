@@ -1,0 +1,5 @@
+[
+  {"airline_iata": "XY", "flight_iata": "XY100", "cs_airline_iata": null, "cs_flight_iata": null, "cs_flight_number": null, "dep_iata": "TIJ", "arr_iata": "GDL", "days": ["mon", "wed", "fri"]},
+  {"airline_iata": "XY", "flight_iata": "XY100", "cs_airline_iata": null, "cs_flight_iata": null, "cs_flight_number": null, "dep_iata": "GDL", "arr_iata": "TIJ", "days": ["mon", "wed", "fri"]},
+  {"airline_iata": "Y4", "flight_iata": "Y4100", "cs_airline_iata": null, "cs_flight_iata": null, "cs_flight_number": null, "dep_iata": "BOG", "arr_iata": "MEX", "days": ["mon", "wed", "fri"]}
+]

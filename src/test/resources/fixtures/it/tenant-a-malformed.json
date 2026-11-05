@@ -1,0 +1,7 @@
+[
+  {
+    "stationCode": "ACA",
+    "route": {
+      "direct": [
+        {"arrivalStation": "PVR", "routeName": "ACAPVR"},
+        {"arrivalStation": "GD

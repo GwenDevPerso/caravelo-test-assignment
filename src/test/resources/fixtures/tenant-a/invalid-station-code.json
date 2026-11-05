@@ -1,0 +1,59 @@
+[
+  {
+    "stationCode": "A1",
+    "route": {
+      "direct": [
+        {
+          "arrivalStation": "GDL",
+          "routeName": "A1GDL"
+        }
+      ],
+      "connection": [
+        {
+          "arrivalStation": "GDL",
+          "routeName": "A1GDL",
+          "connectionStation": "",
+          "routeDirect": 1
+        }
+      ]
+    }
+  },
+  {
+    "stationCode": null,
+    "route": {
+      "direct": [
+        {
+          "arrivalStation": "TIJ",
+          "routeName": "TIJ"
+        }
+      ],
+      "connection": [
+        {
+          "arrivalStation": "TIJ",
+          "routeName": "TIJ",
+          "connectionStation": "",
+          "routeDirect": 1
+        }
+      ]
+    }
+  },
+  {
+    "stationCode": "MEX",
+    "route": {
+      "direct": [
+        {
+          "arrivalStation": "GDL",
+          "routeName": "MEXGDL"
+        }
+      ],
+      "connection": [
+        {
+          "arrivalStation": "GDL",
+          "routeName": "MEXGDL",
+          "connectionStation": "",
+          "routeDirect": 1
+        }
+      ]
+    }
+  }
+]

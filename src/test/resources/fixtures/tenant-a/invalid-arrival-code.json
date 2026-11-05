@@ -1,0 +1,35 @@
+[
+  {
+    "stationCode": "ACA",
+    "route": {
+      "direct": [
+        {
+          "arrivalStation": "MEXX",
+          "routeName": "ACAMEXX"
+        },
+        {
+          "arrivalStation": "",
+          "routeName": "ACA"
+        },
+        {
+          "arrivalStation": "GDL",
+          "routeName": "ACAGDL"
+        }
+      ],
+      "connection": [
+        {
+          "arrivalStation": "GDL",
+          "routeName": "ACAGDL",
+          "connectionStation": "",
+          "routeDirect": 1
+        },
+        {
+          "arrivalStation": null,
+          "routeName": "ACA",
+          "connectionStation": "MEX",
+          "routeDirect": 0
+        }
+      ]
+    }
+  }
+]

@@ -1,0 +1,33 @@
+[
+  {
+    "stationCode": "ACA",
+    "stationName": "Acapulco",
+    "route": {
+      "direct": [
+        {"arrivalStation": "GDL", "routeName": "ACAGDL"},
+        {"arrivalStation": "MEX", "routeName": "ACAMEX"}
+      ],
+      "connection": [
+        {"arrivalStation": "BOG", "routeName": "ACABOG", "connectionStation": "MEX", "routeDirect": 0},
+        {"arrivalStation": "CUN", "routeName": "ACACUN", "connectionStation": "MEX,GDL", "routeDirect": 0},
+        {"arrivalStation": "GDL", "routeName": "ACAGDL", "connectionStation": "", "routeDirect": 1}
+      ]
+    }
+  },
+  {
+    "stationCode": "MEX",
+    "stationName": "Mexico City",
+    "route": {
+      "direct": [
+        {"arrivalStation": "ACA", "routeName": "MEXACA"},
+        {"arrivalStation": "BOG", "routeName": "MEXBOG"}
+      ],
+      "connection": []
+    }
+  },
+  {
+    "stationCode": "TIJ",
+    "stationName": "Tijuana",
+    "route": {"connection": null, "direct": null}
+  }
+]

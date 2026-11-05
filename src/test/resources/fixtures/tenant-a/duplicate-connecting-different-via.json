@@ -1,0 +1,12 @@
+[
+  {
+    "stationCode": "ACA",
+    "route": {
+      "direct": [],
+      "connection": [
+        {"arrivalStation": "AGU", "routeName": "ACAAGU", "connectionStation": "TIJ", "routeDirect": 0},
+        {"arrivalStation": "AGU", "routeName": "ACAAGU", "connectionStation": "MEX", "routeDirect": 0}
+      ]
+    }
+  }
+]

@@ -1,0 +1,19 @@
+[
+  {
+    "stationCode": "ALB",
+    "route": {
+      "direct": null,
+      "connection": null
+    }
+  },
+  {
+    "stationCode": "BJX",
+    "route": {
+      "direct": [],
+      "connection": []
+    }
+  },
+  {
+    "stationCode": "CEN"
+  }
+]

@@ -1,0 +1,19 @@
+{
+  "response": [
+    {
+      "airline_iata": "Y4",
+      "flight_iata": "Y41",
+      "cs_airline_iata": null,
+      "cs_flight_iata": null,
+      "cs_flight_number": null,
+      "dep_iata": "BOG",
+      "dep_icao": "XXXX",
+      "arr_iata": "MEX",
+      "arr_icao": "YYYY",
+      "days": [
+        "mon",
+        "fri"
+      ]
+    }
+  ]
+}

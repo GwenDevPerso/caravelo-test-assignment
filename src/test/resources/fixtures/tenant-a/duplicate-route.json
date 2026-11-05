@@ -1,0 +1,33 @@
+[
+  {
+    "stationCode": "ACA",
+    "route": {
+      "direct": [
+        {
+          "arrivalStation": "GDL",
+          "routeName": "ACAGDL"
+        }
+      ],
+      "connection": [
+        {
+          "arrivalStation": "GDL",
+          "routeName": "ACAGDL",
+          "connectionStation": "MEX",
+          "routeDirect": 1
+        },
+        {
+          "arrivalStation": "AGU",
+          "routeName": "ACAAGU",
+          "connectionStation": "TIJ",
+          "routeDirect": 0
+        },
+        {
+          "arrivalStation": "AGU",
+          "routeName": "ACAAGU",
+          "connectionStation": "TIJ",
+          "routeDirect": 0
+        }
+      ]
+    }
+  }
+]

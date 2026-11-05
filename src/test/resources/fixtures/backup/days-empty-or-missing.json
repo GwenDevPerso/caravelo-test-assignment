@@ -1,0 +1,39 @@
+[
+  {
+    "airline_iata": "Y4",
+    "cs_airline_iata": null,
+    "cs_flight_iata": null,
+    "cs_flight_number": null,
+    "dep_iata": "CUN",
+    "arr_iata": "MEX",
+    "days": []
+  },
+  {
+    "airline_iata": "Y4",
+    "cs_airline_iata": null,
+    "cs_flight_iata": null,
+    "cs_flight_number": null,
+    "dep_iata": "TIJ",
+    "arr_iata": "MEX"
+  },
+  {
+    "airline_iata": "Y4",
+    "cs_airline_iata": null,
+    "cs_flight_iata": null,
+    "cs_flight_number": null,
+    "dep_iata": "GDL",
+    "arr_iata": "MEX",
+    "days": null
+  },
+  {
+    "airline_iata": "Y4",
+    "cs_airline_iata": null,
+    "cs_flight_iata": null,
+    "cs_flight_number": null,
+    "dep_iata": "BOG",
+    "arr_iata": "MEX",
+    "days": [
+      "mon"
+    ]
+  }
+]

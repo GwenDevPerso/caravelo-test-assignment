@@ -1,0 +1,40 @@
+[
+  {
+    "airline_iata": "Y4",
+    "cs_airline_iata": null,
+    "cs_flight_iata": null,
+    "cs_flight_number": null,
+    "dep_iata": null,
+    "dep_icao": "SKBO",
+    "arr_iata": "MEX",
+    "arr_icao": "MMMX",
+    "days": [
+      "mon"
+    ]
+  },
+  {
+    "airline_iata": "Y4",
+    "cs_airline_iata": null,
+    "cs_flight_iata": null,
+    "cs_flight_number": null,
+    "dep_iata": "BOG",
+    "dep_icao": "SKBO",
+    "arr_icao": "MMMX",
+    "days": [
+      "mon"
+    ]
+  },
+  {
+    "airline_iata": "Y4",
+    "cs_airline_iata": null,
+    "cs_flight_iata": null,
+    "cs_flight_number": null,
+    "dep_iata": "CUN",
+    "dep_icao": "MMUN",
+    "arr_iata": "MEX",
+    "arr_icao": "MMMX",
+    "days": [
+      "mon"
+    ]
+  }
+]

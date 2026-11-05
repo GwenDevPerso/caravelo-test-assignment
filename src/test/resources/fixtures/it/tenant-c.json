@@ -1,0 +1,10 @@
+{
+  "meta": { "airline": "XX", "generated": "2026-11-01T00:00:00Z" },
+  "data": {
+    "routes": [
+      { "from": "MEX", "to": "CUN", "flights": 6 },
+      { "from": "CUN", "to": "MEX", "flights": 6 },
+      { "from": "GDL", "to": "TIJ", "flights": 3 }
+    ]
+  }
+}

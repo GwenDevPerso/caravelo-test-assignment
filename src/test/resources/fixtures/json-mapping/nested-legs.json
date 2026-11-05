@@ -1,0 +1,6 @@
+{
+  "itineraries": [
+    { "start": { "code": "MEX" }, "legs": [ { "to": "GDL" }, { "to": "TIJ" } ] },
+    { "start": { "code": "CUN" }, "legs": [ { "to": "MTY" } ] }
+  ]
+}

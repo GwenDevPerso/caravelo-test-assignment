@@ -1,0 +1,12 @@
+[
+  {
+    "stationCode": "MEX",
+    "stationName": "Mexico City",
+    "route": {
+      "direct": [
+        {"arrivalStation": "ACA", "routeName": "MEXACA"}
+      ],
+      "connection": []
+    }
+  }
+]

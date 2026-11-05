@@ -1,0 +1,14 @@
+[
+  {
+    "stationCode": "ACA",
+    "route": {
+      "direct": [
+        {"arrivalStation": "GDL", "routeName": "ACAGDL"}
+      ],
+      "connection": [
+        {"arrivalStation": "GDL", "routeName": "ACAGDL", "connectionStation": "", "routeDirect": 1},
+        {"arrivalStation": "GDL", "routeName": "ACAGDL", "connectionStation": "", "routeDirect": 1}
+      ]
+    }
+  }
+]

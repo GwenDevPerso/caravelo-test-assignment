@@ -1,0 +1,9 @@
+{ "data": { "routes": [
+  { "from": "MEX", "to": "CUN" },
+  { "from": "MX", "to": "CUN" },
+  { "from": "MEX", "to": "CU1" },
+  { "from": "", "to": "CUN" },
+  { "from": null, "to": "CUN" },
+  { "to": "CUN" },
+  { "from": "MEX" }
+] } }
