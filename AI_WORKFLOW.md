@@ -85,6 +85,9 @@ Verbatim, in order. Prompts that shaped the design are marked ★.
 8. `add hook, block the read of .env and git push --force, authorise ./mvnw without confirm, hook PostToolUse on .java file to compile fast without the test`
 9. ★ `create a frontend-vue agent composition api last version in a frontend folder … use my https://gwenaelbihan.fr/ website design`, refined during plan review with: `follow https://vuejs.org/style-guide/ good practice, limit the style to the component style scoped, only App can have global style, css vars and component reuse them, no css framework, … Base prefix for the presentation one`.
 
+10. ★ `now we will start implementing everything, use the main session for the Java and migration db, tenant1.json and tenant2.json are the example of the api endpoint and generic, test-designer agent to write test, spec-reviewer to verify all and frontend to create the frontend` — led to SPEC §6 (API shapes) and `docs/implementation-contract.md`, so tests, code and frontend could be built in parallel against the same names.
+11. `a quoi sert implementation contract ?` — the author questioned the extra document during plan review; the answer (it is what lets black-box tests compile against code they never see) is in CLAUDE.md.
+
 **TODO (author):** prompts used to write `SPEC.md`, if it was written with AI.
 
 ## 4. Where the AI got it wrong, and how it was noticed
@@ -98,6 +101,11 @@ Verbatim, in order. Prompts that shaped the design are marked ★.
 | 5 | The postgres MCP server did not connect: `.mcp.json` used `${DATABASE_URI}`, which Claude Code reads from its own environment (not `.env`), and the URI pointed at `localhost`, i.e. the MCP container itself. | Startup error `CONNECT_TIMEOUT`, then a manual stdio smoke test of the server | `--env-file .env` and `host.docker.internal` in the URI; verified with `select current_user`. |
 | 6 | After moving credentials to `.env`, the compose healthcheck still used `pg_isready -U routesync`, logging `FATAL: role "routesync" does not exist` every 5 s. | PostgreSQL logs | Healthcheck uses `$${POSTGRES_USER}` / `$${POSTGRES_DB}`. |
 | 7 | First version of `block-main-source.sh` let `grep -rn … .` through (regex expected the `r` flag last). | Table of allow/deny cases run against the hook | Regex fixed, cases re-run. |
+| 8 | Subagents launched while the session was in plan mode inherited it and were read-only: they each produced a plan instead of tests/frontend, three times. | Their reports ("plan mode is active, I can't write") | Asked the author to leave plan mode; relaunched them with their own approved plan files. |
+| 9 | The secrets guard hook blocked legitimate commands whose *text* mentioned the env file name (a heredoc appending SPEC §6, a script editing this file). | The hook's error | Used the file editor, or a script file, instead. Known limit of a text-matching hook, kept as is (false positives are safe). |
+| 10 | Jackson 3 API written from Jackson 2 memory: `isContainerNode()` / `getOriginalMessage()` don't exist in `tools.jackson`. A concurrent Maven run (subagents compiling in parallel) made a compile look green once. | Compile errors, then a full `./mvnw compile` log instead of the filtered hook output | `isContainer()`, `getMessage()`. |
+| 11 | Spring Boot 4 no longer auto-configures `RestClient.Builder` with the webmvc starter alone; the app failed to start. | All 48 integration tests red at context load (reported by test-designer), and the first `docker compose up` | `SourceHttpClient` builds its own `RestClient` (no extra starter). |
+| 12 | Tests written in parallel with the implementation were never seen red, so they could pass while testing nothing. | Reported by the test-designer agents themselves | Mutation check: removing the R12 condition from `NetworkDiff` and changing `>=` to `>` in `AntiWipeGuard` made 3 tests fail, then restored; spec-reviewer asked to flag tests that would pass on broken behaviour. |
 
 ## 5. Written or rewritten by hand
 
