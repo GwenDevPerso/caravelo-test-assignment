@@ -1,0 +1,17 @@
+{
+  "meta": { "carrier": "XX", "network": "summer-2027", "generatedAt": "2026-11-01T00:00:00Z" },
+  "data": {
+    "routes": [
+      { "from": "MEX", "to": "CUN", "weeklyFrequency": 42 },
+      { "from": "CUN", "to": "MEX", "weeklyFrequency": 42 },
+      { "from": "GDL", "to": "TIJ", "weeklyFrequency": 21 },
+      { "from": "TIJ", "to": "GDL", "weeklyFrequency": 21 },
+      { "from": "MTY", "to": "CUN", "weeklyFrequency": 14 },
+      { "from": "CUN", "to": "MTY", "weeklyFrequency": 14 },
+      { "from": "MEX", "to": "TIJ", "weeklyFrequency": 28 },
+      { "from": "TIJ", "to": "MEX", "weeklyFrequency": 28 },
+      { "from": "GDL", "to": "LAX", "weeklyFrequency": 7 },
+      { "from": "LAX", "to": "GDL", "weeklyFrequency": 7 }
+    ]
+  }
+}

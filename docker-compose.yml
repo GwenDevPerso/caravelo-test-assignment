@@ -18,8 +18,25 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      # Real endpoints override the local mock of the sample payloads (SPEC §6.4)
+      TENANT_A_URL: ${TENANT_A_URL:-http://mock-sources:8080/tenant-a/stations}
+      BACKUP_PROVIDER_URL: ${BACKUP_PROVIDER_URL:-http://mock-sources:8080/backup/routes}
+      BACKUP_PROVIDER_KEY: ${BACKUP_PROVIDER_KEY:-demo-key}
+      TENANT_C_URL: ${TENANT_C_URL:-http://mock-sources:8080/tenant-c/routes}
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
+      mock-sources:
+        condition: service_started
+
+  mock-sources:
+    image: wiremock/wiremock:3.13.2
+    volumes:
+      - ./docker/mock-sources/mappings:/home/wiremock/mappings:ro
+      - ./tenant1.json:/home/wiremock/__files/tenant1.json:ro
+      - ./tenant2.json:/home/wiremock/__files/tenant2.json:ro
+      - ./docker/mock-sources/tenant-c.json:/home/wiremock/__files/tenant-c.json:ro
+    ports:
+      - "8089:8080"

@@ -1,0 +1,8 @@
+{
+  "request": { "method": "GET", "urlPath": "/tenant-c/routes" },
+  "response": {
+    "status": 200,
+    "headers": { "Content-Type": "application/json" },
+    "bodyFileName": "tenant-c.json"
+  }
+}
