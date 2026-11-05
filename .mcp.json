@@ -1,0 +1,8 @@
+{
+    "mcpServers": {
+        "postgres": {
+            "command": "docker",
+            "args": ["run", "-i", "--rm", "--env-file", ".env", "crystaldba/postgres-mcp", "--access-mode=restricted"]
+        }
+    }
+}
