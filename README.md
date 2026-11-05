@@ -35,18 +35,26 @@ Integration tests start PostgreSQL with Testcontainers, so Docker must be runnin
 
 ## Configuration
 
-Values come from environment variables. Defaults suit local development.
+Values come from environment variables, read by `docker compose` from a `.env` file next to `docker-compose.yml`. Start from the template:
 
-| Variable                | Default                                      | Purpose                                         |
-| ----------------------- | -------------------------------------------- | ----------------------------------------------- |
-| `DB_URL`                | `jdbc:postgresql://localhost:5432/routesync` | JDBC URL                                        |
-| `DB_USER`               | `routesync`                                  | DB user                                         |
-| `DB_PASSWORD`           | `routesync`                                  | DB password                                     |
-| `TENANT_A_URL`          | —                                            | Tenant A Routes API (*planned*)                 |
-| `BACKUP_PROVIDER_URL`   | —                                            | `generic-backup-provider` base URL (*planned*)  |
-| `BACKUP_PROVIDER_KEY`   | —                                            | `generic-backup-provider` API key (*planned*)   |
+```bash
+cp .env.example .env   # then edit the values
+```
 
-Never commit secrets. Put local values in a `.env` file next to `docker-compose.yml`; `.env` must stay out of git.
+| Variable                | Purpose                                                                 |
+| ----------------------- | ----------------------------------------------------------------------- |
+| `POSTGRES_USER`         | DB user (container and app)                                             |
+| `POSTGRES_PASSWORD`     | DB password                                                             |
+| `POSTGRES_DB`           | DB name                                                                 |
+| `POSTGRES_PORT`         | Host port PostgreSQL is published on                                    |
+| `DATABASE_URI`          | Connection URI for the PostgreSQL MCP server (Claude Code), from Docker |
+| `TENANT_A_URL`          | Tenant A Routes API (*planned*)                                         |
+| `BACKUP_PROVIDER_URL`   | `generic-backup-provider` base URL (*planned*)                          |
+| `BACKUP_PROVIDER_KEY`   | `generic-backup-provider` API key (*planned*)                           |
+
+Outside Docker (e.g. `./mvnw spring-boot:run`), the app reads `DB_URL`, `DB_USER`, `DB_PASSWORD`, defaulting to a local `routesync` database.
+
+Never commit secrets: `.env` is git-ignored.
 
 ## Add a new tenant (*planned*)
 
