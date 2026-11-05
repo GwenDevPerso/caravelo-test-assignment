@@ -5,6 +5,7 @@ Java 21 / Spring Boot 4 / PostgreSQL. Multi-tenant route network sync (see `SPEC
 ## Source of truth
 
 - `SPEC.md` defines what to build. Read the relevant section before changing code.
+- `docs/implementation-contract.md`: public Java API, config keys and tables shared by tests and code; update it with any signature change.
 - A behaviour change goes into `SPEC.md` **first**, in its own commit, then the code.
 - Design rationale lives in `DECISIONS.md`; update it when a design choice changes.
 - Log notable AI mistakes and key prompts in `AI_WORKFLOW.md`.
@@ -21,8 +22,8 @@ Java 21 / Spring Boot 4 / PostgreSQL. Multi-tenant route network sync (see `SPEC
 ## Code rules
 
 - Smallest change that fully solves the task. No dependency for a few lines.
-- Prefer Spring built-ins: `@Retryable` (Spring Framework 7), `logging.structured.format` for JSON logs.
-- Schema is owned by Flyway migrations (`src/main/resources/db/migration`); Hibernate only validates.
+- Prefer Spring built-ins (`logging.structured.format` for JSON logs, `RestClient`, scheduling). HTTP to sources goes through `core.SourceHttpClient` (retry, timeouts, key redaction).
+- Schema is owned by Flyway migrations (`src/main/resources/db/migration`); persistence is plain JDBC (`JdbcClient`), no JPA.
 
 ## Tests
 
