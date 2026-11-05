@@ -5,12 +5,47 @@ spring:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/routesync}
     username: ${DB_USER:routesync}
     password: ${DB_PASSWORD:routesync}
-  jpa:
-    open-in-view: false
-    hibernate:
-      ddl-auto: validate # schema is owned by Flyway
+  threads:
+    virtual:
+      enabled: true
 
 logging:
   structured:
     format:
       console: ecs # JSON logs; MDC keys (tenantId, correlationId) are included
+
+# Defaults are the initial assumptions of SPEC §2; source URLs default to the local mock (docker compose, port 8089).
+caravelo:
+  sync:
+    on-startup: true
+    connect-timeout: 5s
+    read-timeout: 10s
+    retry:
+      max-attempts: 3
+      initial-backoff: 1s
+  tenants:
+    tenant-a:
+      airline-iata: Y4
+      sync-cron: '0 0 */6 * * *'
+      sources: # ordered: primary first, then fallbacks
+        - adapter: tenant-a-stations
+          url: ${TENANT_A_URL:http://localhost:8089/tenant-a/stations}
+        - adapter: generic-backup-provider
+          url: ${BACKUP_PROVIDER_URL:http://localhost:8089/backup/routes}
+          api-key: ${BACKUP_PROVIDER_KEY:demo-key}
+    tenant-b:
+      airline-iata: Y4
+      sync-cron: '0 30 */6 * * *'
+      sources:
+        - adapter: generic-backup-provider
+          url: ${BACKUP_PROVIDER_URL:http://localhost:8089/backup/routes}
+          api-key: ${BACKUP_PROVIDER_KEY:demo-key}
+    tenant-c: # phase 2: invented format, onboarded with configuration only (json-mapping)
+      airline-iata: XX # no sync-cron: default every 6 h
+      sources:
+        - adapter: json-mapping
+          url: ${TENANT_C_URL:http://localhost:8089/tenant-c/routes}
+          mapping:
+            items: '$.data.routes[*]'
+            origin: '$.from'
+            destination: '$.to'
