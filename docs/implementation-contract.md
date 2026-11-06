@@ -111,9 +111,9 @@ caravelo:
   tenants:
     <tenant-id>:
       airline-iata: Y4
-      sync-cron: '0 0 */6 * * *'
+      sync-cron: '0 0 3 * * *'
       guard-threshold: 0.5
-      stale-after: 12h
+      stale-after: 48h
       sources:
         - adapter: tenant-a-stations
           url: http://…

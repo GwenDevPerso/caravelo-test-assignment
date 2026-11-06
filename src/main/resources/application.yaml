@@ -26,7 +26,7 @@ caravelo:
   tenants:
     tenant-a:
       airline-iata: Y4
-      sync-cron: '0 0 */6 * * *'
+      sync-cron: '0 0 3 * * *'
       sources: # ordered: primary first, then fallbacks
         - adapter: tenant-a-stations
           url: ${TENANT_A_URL:http://localhost:8089/tenant-a/stations}
@@ -35,13 +35,13 @@ caravelo:
           api-key: ${BACKUP_PROVIDER_KEY:demo-key}
     tenant-b:
       airline-iata: Y4
-      sync-cron: '0 30 */6 * * *'
+      sync-cron: '0 30 3 * * *'
       sources:
         - adapter: generic-backup-provider
           url: ${BACKUP_PROVIDER_URL:http://localhost:8089/backup/routes}
           api-key: ${BACKUP_PROVIDER_KEY:demo-key}
     tenant-c: # phase 2: invented format, onboarded with configuration only (json-mapping)
-      airline-iata: XX # no sync-cron: default every 6 h
+      airline-iata: XX # no sync-cron: default daily at 03:00
       sources:
         - adapter: json-mapping
           url: ${TENANT_C_URL:http://localhost:8089/tenant-c/routes}

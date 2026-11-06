@@ -17,9 +17,9 @@ public record CaraveloProperties(Map<String, Tenant> tenants) {
 
     public record Tenant(
             String airlineIata,
-            @DefaultValue("0 0 */6 * * *") String syncCron,
+            @DefaultValue("0 0 3 * * *") String syncCron,
             @DefaultValue("0.5") double guardThreshold,
-            @DefaultValue("12h") Duration staleAfter,
+            @DefaultValue("48h") Duration staleAfter,
             List<Source> sources) {
 
         public Tenant {
