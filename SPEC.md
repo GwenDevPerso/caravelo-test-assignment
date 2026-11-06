@@ -70,7 +70,7 @@ The brief invites candidates to state their assumptions. These were made where t
 | A6  | Only `(origin, destination)` pairs matter; schedules, times, prices and station metadata are out of scope.                                              | The IBE needs to know which routes exist; schedules belong to other systems.                                                                                               |
 | A7  | A single service instance runs at a time.                                                                                                               | Simplest for the exercise; a multi-instance deployment would need a distributed lock (documented as future work).                                                          |
 | A8  | The example API key in the `generic-backup-provider` URL is not a real secret, but keys are still injected through environment variables. The only committed defaults are local demo values (`demo-key` for the mock, `routesync` for a local database). | The brief forbids real secrets in the repository.                                                                                                                          |
-| A9  | Default values (sync interval, retries, timeouts, guard threshold) are initial choices, not requirements.                                               | The brief gives no figures; see §2 _Default values and assumptions_.                                                                                                       |
+| A9  | Default values (sync interval, retries, timeouts, guard threshold) are initial choices, not requirements.                                               | The brief only says syncs are daily (phase 2 scheduler); it gives no other figures. See §2 _Default values and assumptions_.                                                                                                       |
 | A10 | The provided endpoints are Google Apps Script URLs, which may answer with a redirect, or with an HTML page and status 200 on error.                     | Redirects are followed; any non-JSON body is treated as a malformed response.                                                                                              |
 
 ### Brief → design decisions
@@ -184,7 +184,7 @@ caravelo:
     tenants:
         tenant-a:
             airline-iata: Y4
-            sync-cron: '0 0 */6 * * *'
+            sync-cron: '0 0 3 * * *'
             sources: # ordered: primary first, then fallbacks
                 - adapter: tenant-a-stations
                   url: ${TENANT_A_URL}
@@ -193,13 +193,13 @@ caravelo:
                   api-key: ${BACKUP_PROVIDER_KEY}
         tenant-b:
             airline-iata: Y4
-            sync-cron: '0 30 */6 * * *'
+            sync-cron: '0 30 3 * * *'
             sources:
                 - adapter: generic-backup-provider
                   url: ${BACKUP_PROVIDER_URL}
                   api-key: ${BACKUP_PROVIDER_KEY}
         tenant-c: # bonus, phase 2: invented format, config-only onboarding
-            airline-iata: XX # no sync-cron → default every 6 h
+            airline-iata: XX # no sync-cron → default daily at 03:00
             sources:
                 - adapter: json-mapping
                   url: ${TENANT_C_URL}
@@ -211,7 +211,7 @@ caravelo:
 
 ### Default values and assumptions
 
-The brief gives no figures for sync frequency, retries or thresholds. The values below are **initial assumptions**, not requirements: they are configurable per tenant and meant to be tuned with real traffic.
+Apart from "daily syncs" (phase 2 bonus), the brief gives no figures for sync frequency, retries or thresholds. The values below are **initial assumptions**, not requirements: they are configurable per tenant and meant to be tuned with real traffic.
 
 #### `sync-cron` — how often a tenant is synced
 
@@ -221,36 +221,36 @@ Spring cron expressions have **6 fields**, seconds first:
 
 ```
 second  minute  hour  day-of-month  month  day-of-week
-  0       0     */6        *          *          *
+  0       0      3         *          *          *
 ```
 
 | Field        | Value | Meaning                                              |
 | ------------ | ----- | ---------------------------------------------------- |
 | second       | `0`   | at second 0                                          |
 | minute       | `0`   | at minute 0                                          |
-| hour         | `*/6` | every 6 hours, starting at midnight (00, 06, 12, 18) |
+| hour         | `3`   | at 03:00                                             |
 | day-of-month | `*`   | every day of the month                               |
 | month        | `*`   | every month                                          |
 | day-of-week  | `*`   | every day of the week                                |
 
-- `0 0 */6 * * *` (Tenant A) → runs at **00:00, 06:00, 12:00, 18:00**.
-- `0 30 */6 * * *` (Tenant B) → runs at **00:30, 06:30, 12:30, 18:30**.
+- `0 0 3 * * *` (Tenant A) → runs **every day at 03:00**.
+- `0 30 3 * * *` (Tenant B) → runs **every day at 03:30**.
 - Times are in the service's time zone (UTC by default in the container).
-- A tenant without `sync-cron` uses the default `0 0 */6 * * *`.
+- A tenant without `sync-cron` uses the default `0 0 3 * * *` (daily at 03:00).
 - A sync can always be triggered manually, independently of the cron.
 
 #### Why these values
 
 | Setting                | Default                      | Reasoning                                                                                                                                                                         |
 | ---------------------- | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Sync interval          | every **6 h**                | A route network changes rarely (a few times a month). 6 h shows a change the same day without loading the airlines' APIs for nothing.                                             |
+| Sync interval          | **daily** (03:00)            | The brief asks for daily syncs; a route network changes rarely (a few times a month), so a change is seen by the next morning. 03:00 is a low-traffic hour for the airlines' APIs. A manual sync covers urgent changes.                            |
 | Offset between tenants | **30 min**                   | Avoids all tenants calling the APIs at the same moment, especially when several use the same `generic-backup-provider`.                                                           |
 | Retry attempts         | **3**                        | Enough to absorb a short glitch (network blip, restart) without delaying the fallback too long.                                                                                   |
 | Backoff                | **~1 s, then 2 s** + jitter  | Exponential, as required by the brief: gives a struggling provider time to recover. Jitter (±20 %) spreads retries of different tenants. 3 attempts = 2 waits: worst case ≈ 3 s of waiting (plus timeouts) before falling back. |
 | Connect timeout        | **5 s**                      | A healthy API accepts a connection in milliseconds; 5 s means it is unreachable.                                                                                                  |
 | Read timeout           | **10 s**                     | A full network payload can be large (Source A returns all stations with all connections); 10 s leaves room while still failing fast.                                              |
 | Anti-wipe guard        | **50 %** of stored routes of covered types | No airline loses half of its network between two syncs; such a drop is far more likely a broken or truncated response.                                                            |
-| Stale threshold        | **2 × sync interval** (12 h) | Tolerates one failed run (temporary outage) but raises the alarm on the second.                                                                                                   |
+| Stale threshold        | **2 × sync interval** (48 h) | Tolerates one failed run (temporary outage) but raises the alarm on the second.                                                                                                   |
 
 ### Plugin contract
 
@@ -521,7 +521,7 @@ Added before implementation to remove the ambiguities found when reviewing v1 (e
 
 - **`MODIFIED`**: a stored route whose `type` or `via` set differs in the new snapshot. Both old and new values are recorded.
 - **Error count**: number of runs of the tenant that ended `FAILED` or `REJECTED` (monotonic, never reset; AC10).
-- **Stale**: no `SUCCESS` or `DEGRADED` run finished (`finishedAt`) within the stale threshold (default **12 h**, configurable per tenant), or no successful run at all.
+- **Stale**: no `SUCCESS` or `DEGRADED` run finished (`finishedAt`) within the stale threshold (default **48 h**, configurable per tenant), or no successful run at all.
 - **First sync**: with nothing stored, a non-empty snapshot is applied as is (all routes `ADDED`); an empty snapshot is `REJECTED`.
 - **Statuses** of a run: `RUNNING`, `SUCCESS` (primary source), `DEGRADED` (a fallback source), `REJECTED` (guard), `FAILED` (all sources failed, or persistence failed).
 - **Correlation id** = the sync run id (UUID).
@@ -576,4 +576,4 @@ For `ADDED` the old fields are `null`, for `REMOVED` the new ones. `issueCount` 
 
 - `json-mapping` mapping keys: `items` (path to the array of route records, from the payload root, e.g. `$.data.routes[*]`), `origin` and `destination` (paths relative to one record, e.g. `$.from`, `$.legs[0].to`). Supported path syntax: `$`, `.field`, `[n]`, and `[*]` at the end of `items`. Records are normalised and validated with R1–R4 (issues logged); every route is `DIRECT` and the covered type is `DIRECT` (a format with connections needs its own adapter).
 - An invalid mapping (missing `items` / `origin` / `destination`, unsupported path) disables the tenant at startup like an unknown adapter.
-- Scheduler: each enabled tenant is synced on its `sync-cron` (default `0 0 */6 * * *`, service time zone). A scheduled run that finds a sync already running for the tenant is skipped and logged, not queued. `caravelo.sync.scheduler-enabled` (default `true`) turns it off.
+- Scheduler: each enabled tenant is synced on its `sync-cron` (default `0 0 3 * * *`, daily at 03:00, service time zone). A scheduled run that finds a sync already running for the tenant is skipped and logged, not queued. `caravelo.sync.scheduler-enabled` (default `true`) turns it off.
