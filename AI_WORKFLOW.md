@@ -87,6 +87,7 @@ Verbatim, in order. Prompts that shaped the design are marked ★.
 10. ★ `now we will start implementing everything, use the main session for the Java and migration db, tenant1.json and tenant2.json are the example of the api endpoint and generic, test-designer agent to write test, spec-reviewer to verify all and frontend to create the frontend`: led to SPEC §6 (API shapes) and `docs/implementation-contract.md`, so tests, code and frontend could be built in parallel against the same names.
 11. `add in the decision the frontend part and the choices made`, then `add the frontend in the readme, how to sync, where to find the logging`: `DECISIONS.md` §5 and the README *Frontend*, *Syncing* and *Logs* sections.
 12. `/security-review`, then `use the mcp postgresql pour me montrer un schema de la base`: no HIGH or MEDIUM finding; schema checked against the Flyway migration through the MCP server.
+13. `modifie le sync a daily, add e2e test in the frontend using playwright`: SPEC first (daily crons at 03:00 / 03:30, stale threshold 48 h), then config and docs; `frontend-vue` added a Playwright suite run against the real Docker stack (desktop + 360 px).
 
 
 ## 4. Where the AI got it wrong, and how it was noticed
@@ -106,6 +107,7 @@ Verbatim, in order. Prompts that shaped the design are marked ★.
 | 11 | Spring Boot 4 no longer auto-configures `RestClient.Builder` with the webmvc starter alone; the app failed to start. | All 48 integration tests red at context load (reported by test-designer), and the first `docker compose up` | `SourceHttpClient` builds its own `RestClient` (no extra starter). |
 | 12 | Tests written in parallel with the implementation were never seen red, so they could pass while testing nothing. | Reported by the test-designer agents themselves | Mutation check: removing the R12 condition from `NetworkDiff` and changing `>=` to `>` in `AntiWipeGuard` made 3 tests fail, then restored; spec-reviewer asked to flag tests that would pass on broken behaviour. |
 | 13 | The first README *Logs* draft said the run id could be read from `GET …/health`, which does not return it. | Checking the `TenantHealth` record before finishing | The README says the run id comes from the `POST …/sync` response. |
+| 14 | `frontend-vue` reported the e2e suite green, but the Docker image it tested had been built before the daily-cron change, so the running app still scheduled every 6 h. | Checking the app log (`Tenant … scheduled with cron`) instead of trusting the report | Rebuilt the `app` image, log shows `0 0 3 * * *` / `0 30 3 * * *`, e2e re-run green (18 passed, 2 mobile-only skips). The e2e run itself found no UI bug. |
 
 
 ## 5. Time split (rough)
@@ -113,7 +115,6 @@ Verbatim, in order. Prompts that shaped the design are marked ★.
 
 | Activity | Time |
 | --- | --- |
-| Spec | |
-| AI-assisted implementation | |
-| Review / fixing | |
-| Testing | |
+| Spec | 2h |
+| AI-assisted implementation / Testing | 3h |
+| Review / fixing | 1h |

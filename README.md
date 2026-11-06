@@ -58,6 +58,14 @@ npm run dev          # http://localhost:5173
 
 Build and tests: `npm run build`, `npm run test:unit -- --run`. Details: [`frontend/README.md`](frontend/README.md).
 
+End-to-end tests (Playwright, real browser → Vite → Spring → PostgreSQL, with `mock-sources` serving the sample data), desktop and 360 px mobile:
+
+```bash
+docker compose up -d --build                      # from the repository root, first
+cd frontend && npx playwright install chromium    # once
+npm run test:e2e                                  # starts `npm run dev` if it is not already running
+```
+
 ## Syncing
 
 A tenant is synced in three ways:
@@ -65,7 +73,7 @@ A tenant is synced in three ways:
 | Trigger   | When                                                                                       | Setting                                                    |
 | --------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
 | Startup   | Once per enabled tenant when the app starts, in the background                             | `caravelo.sync.on-startup` (default `true`)                |
-| Scheduled | Per-tenant cron (default every 6 h; tenants are staggered in `application.yaml`)          | `caravelo.tenants.<id>.sync-cron`, `caravelo.sync.scheduler-enabled` |
+| Scheduled | Per-tenant cron (default daily at 03:00; tenants are staggered in `application.yaml`)          | `caravelo.tenants.<id>.sync-cron`, `caravelo.sync.scheduler-enabled` |
 | Manual    | `curl -X POST localhost:8080/api/tenants/<id>/sync`, or the **sync** button on the health page | —                                                  |
 
 The manual call waits for the run and returns it (`status`, `sourceUsed`, counts, `error`). Only one sync per tenant runs at a time: a second manual call gets `409`, and a cron tick that finds a sync running is skipped. The result is visible in `GET /api/tenants/<id>/health` and, for each change, in `GET /api/tenants/<id>/changes`.
@@ -143,9 +151,9 @@ caravelo:
   tenants:
     tenant-d:
       airline-iata: XY
-      sync-cron: '0 15 */6 * * *'   # optional, default every 6 h
+      sync-cron: '0 15 3 * * *'     # optional, default daily at 03:00
       guard-threshold: 0.5          # optional
-      stale-after: 12h              # optional
+      stale-after: 48h              # optional
       sources:                       # ordered: primary first, then fallbacks
         - adapter: generic-backup-provider
           url: ${BACKUP_PROVIDER_URL}
