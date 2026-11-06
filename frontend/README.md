@@ -20,6 +20,20 @@ npm run test:unit -- --run
 
 Start the backend first (`docker compose up --build` from the repository root).
 
+## End-to-end tests
+
+`e2e/*.spec.ts` (Playwright) drive a real browser against the Vite dev server, which proxies `/api` to the running
+stack (Spring app, PostgreSQL, `mock-sources` WireMock with the deterministic sample payloads). Nothing is mocked.
+
+```sh
+docker compose up -d --build     # from the repository root; global setup fails fast if :8080 does not answer
+npx playwright install chromium  # once
+npm run test:e2e                 # projects: desktop Chromium and mobile 360×740; reuses a running `npm run dev`
+```
+
+Assertions rely on the sample data (tenant-a origin ACA: 58 destinations, DIRECT only GDL, MEX, TIJ). The health
+spec triggers a real `POST …/sync` on tenant-a. Locators are roles, labels and text only.
+
 ## Layout
 
 - `src/api/client.ts`: typed `fetch` wrapper and one function per endpoint; non-2xx throws `ApiError(status, message, parameter?)`.
