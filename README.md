@@ -174,7 +174,7 @@ New flat JSON format (Tenant C, configuration only):
             destination: '$.to'
 ```
 
-A new adapter class implements `core.service.RouteSourceAdapter` (`type()`, `coveredTypes()`, `fetch()`, optional `validate()`), is a Spring `@Component` in `adapter/<type>`, and uses `core.service.SourceHttpClient` for HTTP (retries and timeouts included). Nothing in the core changes; `ArchitectureTest` fails the build if the core depends on an adapter.
+A new adapter class implements `core.source.RouteSourceAdapter` (`type()`, `coveredTypes()`, `fetch()`, optional `validate()`), is a Spring `@Component` in `adapter/<type>`, and uses `core.source.SourceHttpClient` for HTTP (retries and timeouts included). Nothing in the core changes; `ArchitectureTest` fails the build if the core depends on an adapter.
 
 A tenant whose configuration is invalid (unknown adapter, bad mapping) is disabled at startup with a clear error log and `enabled: false` in `GET /api/tenants`; the other tenants run normally.
 

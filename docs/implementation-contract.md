@@ -9,30 +9,32 @@ implementation provides exactly this. Root package: `com.caravelo.routesync`. Ja
 | Package | Content | May depend on |
 | --- | --- | --- |
 | `core` | Adapter contract (SPEC §2), canonical model, HTTP client with retry | — |
-| `sync` | Diff, guard, sync orchestration | `core`, `persistence`, `tenant` |
+| `sync` | Diff, guard, sync orchestration, startup and scheduled triggers | `core`, `persistence`, `tenant` |
+| `health` | Tenant health (freshness, last status) | `core`, `sync`, `persistence`, `tenant` |
 | `persistence` | JDBC repositories | `core`, `sync` model |
 | `tenant` | Tenant configuration, adapter registry | `core` |
-| `api` | REST controllers | `sync`, `persistence`, `tenant` |
+| `api` | REST controllers | `sync`, `health`, `persistence`, `tenant` |
 | `adapter.<type>` | One package per adapter: `adapter.tenanta`, `adapter.backup`, `adapter.jsonmapping` | `core` only |
 
 Rule (AC17): no class outside `..adapter..` depends on a class in `..adapter..`.
 
-Inside `core` and `sync`, classes are grouped by kind:
+Packages are grouped by feature, not by kind, so helpers can stay package-private:
 
 ```
-core.model      CanonicalRoute, MappingIssue, SourceResult, TenantSourceConfig
-core.type       RouteType
-core.service    RouteSourceAdapter, SourceHttpClient
-core.exception  SourceFetchException
-core.config     SyncProperties
-core.util       IataCodes
-sync.service    SyncService, HealthService, NetworkDiff, AntiWipeGuard
-sync.model      RouteChange, SyncRunView, TenantHealth
-sync.type       ChangeType, SyncStatus
-sync.exception  SyncInProgressException, TenantDisabledException, TenantNotFoundException
-sync.scheduling StartupSync, TenantSyncScheduler
-sync.config     ClockConfiguration
+core             SyncProperties
+core.route       CanonicalRoute, RouteType, IataCodeUtils
+core.source      RouteSourceAdapter, SourceHttpClient, SourceFetchException, SourceResult, MappingIssue,
+                 TenantSourceConfig
+sync             SyncService, NetworkDiffCalculator, AntiWipeGuard, RouteChange, ChangeType, SyncRunView,
+                 SyncStatus, SyncInProgressException, TenantDisabledException, StartupSyncRunner,
+                 TenantSyncScheduler, ClockConfiguration
+health           HealthService, TenantHealth
+tenant           CaraveloProperties, TenantDefinition, TenantRegistry, TenantNotFoundException
+persistence      RouteRepository, SyncRunRepository, ChangeRepository, NetworkPersistenceService
 ```
+
+Class names carry their role (`…Service`, `…Repository`, `…Adapter`, `…Client`, `…Properties`, `…Exception`,
+`…Utils`, …), never their language kind: no `…Enum`, `…Record` or `…Dto`.
 
 ## `core`
 
@@ -57,7 +59,7 @@ public class SourceFetchException extends RuntimeException {
 }
 ```
 
-`SourceHttpClient` (Spring bean in `core.service`): `JsonNode getJson(URI uri)` — timeouts, retries with backoff (SPEC §4.1),
+`SourceHttpClient` (Spring bean in `core.source`): `JsonNode getJson(URI uri)` — timeouts, retries with backoff (SPEC §4.1),
 a non-JSON body or non-2xx status becomes a `SourceFetchException`.
 
 ## Adapters
@@ -94,12 +96,12 @@ public enum ChangeType { ADDED, REMOVED, MODIFIED }
 public record RouteChange(ChangeType changeType, String origin, String destination,
                           RouteType oldType, RouteType newType, Set<String> oldVia, Set<String> newVia) {}
 
-public final class NetworkDiff {
+final class NetworkDiffCalculator {   // package-private, used by SyncService
     // stored routes whose type is not in coveredTypes are never REMOVED (R12)
     public static List<RouteChange> compute(Collection<CanonicalRoute> stored, Set<CanonicalRoute> snapshot,
                                             Set<RouteType> coveredTypes);
 }
-public final class AntiWipeGuard {
+final class AntiWipeGuard {   // package-private, used by SyncService
     // false if snapshot empty; true if nothing stored; else snapshotSize >= threshold * storedCoveredCount
     public static boolean accepts(int storedCoveredCount, int snapshotSize, double threshold);
 }
@@ -178,10 +180,11 @@ RouteRepository:   List<CanonicalRoute> findAll(String tenantId); int count(Stri
 SyncRunRepository: void start(UUID runId, String tenantId, Instant startedAt); void finish(SyncRunView run);
                    Optional<SyncRunView> latest(String tenantId); Optional<SyncRunView> latestSuccessful(String tenantId);
                    int errorCount(String tenantId); int failInterrupted(Instant now);
-NetworkStore:      void apply(SyncRunView run, List<RouteChange> diff);   // one transaction
+NetworkPersistenceService: void apply(SyncRunView run, List<RouteChange> diff);   // one transaction
 
-// sync
-public SyncService(TenantRegistry tenants, RouteRepository routes, SyncRunRepository runs, NetworkStore store, Clock clock);
+// sync, health
+public SyncService(TenantRegistry tenants, RouteRepository routes, SyncRunRepository runs,
+                   NetworkPersistenceService store, Clock clock);
 public HealthService(TenantRegistry tenants, SyncRunRepository runs, RouteRepository routes, Clock clock);
 public TenantHealth health(String tenantId);
 public record TenantHealth(String tenantId, boolean enabled, Instant lastSuccessAt, SyncStatus lastStatus,

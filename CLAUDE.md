@@ -22,7 +22,7 @@ Java 21 / Spring Boot 4 / PostgreSQL. Multi-tenant route network sync (see `SPEC
 ## Code rules
 
 - Smallest change that fully solves the task. No dependency for a few lines.
-- Prefer Spring built-ins (`logging.structured.format` for JSON logs, `RestClient`, scheduling). HTTP to sources goes through `core.service.SourceHttpClient` (retry, timeouts, key redaction).
+- Prefer Spring built-ins (`logging.structured.format` for JSON logs, `RestClient`, scheduling). HTTP to sources goes through `core.source.SourceHttpClient` (retry, timeouts, key redaction).
 - Schema is owned by Flyway migrations (`src/main/resources/db/migration`); persistence is plain JDBC (`JdbcClient`), no JPA.
 
 ## Tests

@@ -8,15 +8,15 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
-import com.caravelo.routesync.core.exception.SourceFetchException;
-import com.caravelo.routesync.core.model.CanonicalRoute;
-import com.caravelo.routesync.core.model.MappingIssue;
-import com.caravelo.routesync.core.model.SourceResult;
-import com.caravelo.routesync.core.model.TenantSourceConfig;
-import com.caravelo.routesync.core.service.RouteSourceAdapter;
-import com.caravelo.routesync.core.service.SourceHttpClient;
-import com.caravelo.routesync.core.type.RouteType;
-import com.caravelo.routesync.core.util.IataCodes;
+import com.caravelo.routesync.core.source.SourceFetchException;
+import com.caravelo.routesync.core.route.CanonicalRoute;
+import com.caravelo.routesync.core.source.MappingIssue;
+import com.caravelo.routesync.core.source.SourceResult;
+import com.caravelo.routesync.core.source.TenantSourceConfig;
+import com.caravelo.routesync.core.source.RouteSourceAdapter;
+import com.caravelo.routesync.core.source.SourceHttpClient;
+import com.caravelo.routesync.core.route.RouteType;
+import com.caravelo.routesync.core.route.IataCodeUtils;
 
 import tools.jackson.databind.JsonNode;
 
@@ -68,8 +68,8 @@ public class JsonMappingAdapter implements RouteSourceAdapter {
         for (JsonNode item : items) {
             String rawOrigin = text(mapping.origin.resolve(item));
             String rawDestination = text(mapping.destination.resolve(item));
-            String origin = IataCodes.normalise(rawOrigin);
-            String destination = IataCodes.normalise(rawDestination);
+            String origin = IataCodeUtils.normalise(rawOrigin);
+            String destination = IataCodeUtils.normalise(rawDestination);
             if (origin == null || destination == null) {
                 issues.add(new MappingIssue("R3", "record rejected, invalid origin/destination: %s/%s"
                         .formatted(rawOrigin, rawDestination)));

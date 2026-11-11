@@ -11,15 +11,15 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
-import com.caravelo.routesync.core.exception.SourceFetchException;
-import com.caravelo.routesync.core.model.CanonicalRoute;
-import com.caravelo.routesync.core.model.MappingIssue;
-import com.caravelo.routesync.core.model.SourceResult;
-import com.caravelo.routesync.core.model.TenantSourceConfig;
-import com.caravelo.routesync.core.service.RouteSourceAdapter;
-import com.caravelo.routesync.core.service.SourceHttpClient;
-import com.caravelo.routesync.core.type.RouteType;
-import com.caravelo.routesync.core.util.IataCodes;
+import com.caravelo.routesync.core.source.SourceFetchException;
+import com.caravelo.routesync.core.route.CanonicalRoute;
+import com.caravelo.routesync.core.source.MappingIssue;
+import com.caravelo.routesync.core.source.SourceResult;
+import com.caravelo.routesync.core.source.TenantSourceConfig;
+import com.caravelo.routesync.core.source.RouteSourceAdapter;
+import com.caravelo.routesync.core.source.SourceHttpClient;
+import com.caravelo.routesync.core.route.RouteType;
+import com.caravelo.routesync.core.route.IataCodeUtils;
 
 import tools.jackson.databind.JsonNode;
 
@@ -57,7 +57,7 @@ public class TenantAStationsAdapter implements RouteSourceAdapter {
         List<MappingIssue> issues = new ArrayList<>();
         Set<CanonicalRoute> routes = new LinkedHashSet<>();
         for (JsonNode station : stations) {
-            String origin = IataCodes.normalise(text(station, "stationCode"));
+            String origin = IataCodeUtils.normalise(text(station, "stationCode"));
             if (origin == null) {
                 issues.add(new MappingIssue("R3", "station rejected, invalid stationCode: " + text(station, "stationCode")));
                 continue;
@@ -129,7 +129,7 @@ public class TenantAStationsAdapter implements RouteSourceAdapter {
         /** Valid, distinct destination of a route element, or null when the element is rejected (R3, R4, R10). */
         private String destination(JsonNode element) {
             String raw = text(element, "arrivalStation");
-            String destination = IataCodes.normalise(raw);
+            String destination = IataCodeUtils.normalise(raw);
             if (destination == null) {
                 issues.add(new MappingIssue("R3", "route from " + origin + " rejected, invalid arrivalStation: " + raw));
                 return null;
@@ -150,7 +150,7 @@ public class TenantAStationsAdapter implements RouteSourceAdapter {
             Set<String> via = new LinkedHashSet<>();
             List<String> dropped = new ArrayList<>();
             for (String part : raw == null ? new String[0] : raw.split(",")) {
-                String code = IataCodes.normalise(part);
+                String code = IataCodeUtils.normalise(part);
                 if (code == null || code.equals(origin) || code.equals(destination)) {
                     if (!part.isBlank()) {
                         dropped.add(part.trim());

@@ -10,8 +10,8 @@ import java.util.UUID;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
-import com.caravelo.routesync.sync.model.SyncRunView;
-import com.caravelo.routesync.sync.type.SyncStatus;
+import com.caravelo.routesync.sync.SyncRunView;
+import com.caravelo.routesync.sync.SyncStatus;
 
 /** Every sync attempt, used for health and as the change log's correlation id. */
 @Repository

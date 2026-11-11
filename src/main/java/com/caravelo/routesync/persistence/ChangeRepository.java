@@ -9,9 +9,9 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
-import com.caravelo.routesync.core.type.RouteType;
-import com.caravelo.routesync.sync.model.RouteChange;
-import com.caravelo.routesync.sync.type.ChangeType;
+import com.caravelo.routesync.core.route.RouteType;
+import com.caravelo.routesync.sync.RouteChange;
+import com.caravelo.routesync.sync.ChangeType;
 
 /** Persistent change log (SPEC §1 brief decision 6). */
 @Repository

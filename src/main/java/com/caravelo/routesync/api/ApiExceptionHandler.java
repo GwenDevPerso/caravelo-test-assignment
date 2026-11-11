@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import com.caravelo.routesync.sync.exception.SyncInProgressException;
-import com.caravelo.routesync.sync.exception.TenantDisabledException;
-import com.caravelo.routesync.sync.exception.TenantNotFoundException;
+import com.caravelo.routesync.sync.SyncInProgressException;
+import com.caravelo.routesync.sync.TenantDisabledException;
+import com.caravelo.routesync.tenant.TenantNotFoundException;
 
 /** Errors as RFC 9457 problem+json; a bad query parameter is named in {@code parameter} (SPEC §6.2). */
 @RestControllerAdvice

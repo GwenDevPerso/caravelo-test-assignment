@@ -14,10 +14,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
-import com.caravelo.routesync.core.model.CanonicalRoute;
-import com.caravelo.routesync.core.type.RouteType;
-import com.caravelo.routesync.sync.model.RouteChange;
-import com.caravelo.routesync.sync.type.ChangeType;
+import com.caravelo.routesync.core.route.CanonicalRoute;
+import com.caravelo.routesync.core.route.RouteType;
+import com.caravelo.routesync.sync.RouteChange;
+import com.caravelo.routesync.sync.ChangeType;
 
 /** The stored network, always scoped by tenant. */
 @Repository

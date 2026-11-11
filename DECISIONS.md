@@ -24,6 +24,7 @@ One sync run per tenant, in five steps:
 - **The diff compares against what is stored**, not against the previous API response. Change detection then stays correct after failed, rejected or skipped runs.
 - **Every run is persisted** (status, source used, counts, error). Health and the change log are queries on that table, with no separate monitoring state.
 - **Every row and query carries `tenantId`.** Tenants share tables but never data.
+- **Packages by feature, not by kind** (`core.route`, `core.source`, `sync`, `health`, `tenant`, `persistence`, `api`, `adapter.<type>`): a feature's classes live together and its helpers stay package-private. Class names carry their role (`…Service`, `…Repository`, `…Adapter`, `…Utils`), not their language kind.
 
 ## 2. Configure, extend or build new: per tenant
 
@@ -56,7 +57,7 @@ The rule: **nothing in the core changes for a tenant.** Building new is limited 
 ## 4. Technology choices
 
 - **Spring Boot 4 built-ins over extra libraries**: Boot's `logging.structured.format` for JSON logs with MDC (`tenantId`, `correlationId`), JDK `HttpClient` behind Spring's `RestClient`, `@EnableScheduling` with one cron task per tenant. No Resilience4j, Logstash encoder or JSONPath library.
-- **A 40-line retry loop instead of `@Retryable`** (`core.service.SourceHttpClient`): Spring Framework 7's retry support was the first choice, but honouring `Retry-After` on a 429 and classifying failures (timeout and 5xx retried, 4xx and malformed payloads not) per attempt was simpler and clearer as an explicit loop, unit-tested through WireMock. The API key is never logged (query strings are redacted).
+- **A 40-line retry loop instead of `@Retryable`** (`core.source.SourceHttpClient`): Spring Framework 7's retry support was the first choice, but honouring `Retry-After` on a 429 and classifying failures (timeout and 5xx retried, 4xx and malformed payloads not) per attempt was simpler and clearer as an explicit loop, unit-tested through WireMock. The API key is never logged (query strings are redacted).
 - **Plain JDBC (`JdbcClient`) instead of JPA**: three tables, set-based writes (batch upsert/delete) and `TEXT[]` columns. Entities and dirty checking would add mapping code and hide the SQL that makes a sync idempotent (`INSERT … ON CONFLICT`). Flyway owns the schema; without an ORM there is no entity/schema validation at startup, so drift is caught by Flyway's checksum validation and by the integration tests running every query on a real PostgreSQL.
 - **PostgreSQL**: primary key `(tenant_id, origin, destination)` makes duplicates impossible at the database level; `TEXT[]` holds `via`; change details are plain columns (old/new type and via), queryable without JSON functions.
 - **`json-mapping` with a tiny path subset** (`$`, `.field`, `[n]`, final `[*]`): enough for flat formats like Tenant C; anything richer is a sign the format deserves its own adapter. Adapters gained an optional `validate(config)` so a bad mapping disables only that tenant at startup.

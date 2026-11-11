@@ -28,8 +28,8 @@ around it. If you feel you need the implementation, that is a gap in the spec: r
 ## What production API to assume
 
 - The contract in `SPEC.md` §2 is fixed: `RouteSourceAdapter`, `CanonicalRoute`, `RouteType`, `SourceResult`,
-  `MappingIssue`, `TenantSourceConfig`, in the sub-packages of `com.caravelo.routesync.core`
-  (`core.model`, `core.type`, `core.service`; see `docs/implementation-contract.md`).
+  `MappingIssue`, `TenantSourceConfig`, in the feature packages of `com.caravelo.routesync.core`
+  (`core.route`, `core.source`; see `docs/implementation-contract.md`).
 - REST endpoints and statuses as written in `SPEC.md` (and `README.md` for the proposed paths).
 - Anything else you need (a service, a repository, an adapter class, a config property) is an **assumed API**:
   choose the simplest name and signature consistent with the spec and the package rules in `CLAUDE.md`

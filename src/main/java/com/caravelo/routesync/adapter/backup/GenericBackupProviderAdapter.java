@@ -9,15 +9,15 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.caravelo.routesync.core.exception.SourceFetchException;
-import com.caravelo.routesync.core.model.CanonicalRoute;
-import com.caravelo.routesync.core.model.MappingIssue;
-import com.caravelo.routesync.core.model.SourceResult;
-import com.caravelo.routesync.core.model.TenantSourceConfig;
-import com.caravelo.routesync.core.service.RouteSourceAdapter;
-import com.caravelo.routesync.core.service.SourceHttpClient;
-import com.caravelo.routesync.core.type.RouteType;
-import com.caravelo.routesync.core.util.IataCodes;
+import com.caravelo.routesync.core.source.SourceFetchException;
+import com.caravelo.routesync.core.route.CanonicalRoute;
+import com.caravelo.routesync.core.source.MappingIssue;
+import com.caravelo.routesync.core.source.SourceResult;
+import com.caravelo.routesync.core.source.TenantSourceConfig;
+import com.caravelo.routesync.core.source.RouteSourceAdapter;
+import com.caravelo.routesync.core.source.SourceHttpClient;
+import com.caravelo.routesync.core.route.RouteType;
+import com.caravelo.routesync.core.route.IataCodeUtils;
 
 import tools.jackson.databind.JsonNode;
 
@@ -64,8 +64,8 @@ public class GenericBackupProviderAdapter implements RouteSourceAdapter {
             if (!airlineMatches(flight, airline) || isCodeshare(flight) || !operates(flight)) {
                 continue; // R5, R13, not operating: ignored, not an issue
             }
-            String origin = IataCodes.normalise(text(flight, "dep_iata"));
-            String destination = IataCodes.normalise(text(flight, "arr_iata"));
+            String origin = IataCodeUtils.normalise(text(flight, "dep_iata"));
+            String destination = IataCodeUtils.normalise(text(flight, "arr_iata"));
             if (origin == null || destination == null) {
                 issues.add(new MappingIssue("R3", "flight %s rejected, invalid dep_iata/arr_iata: %s/%s"
                         .formatted(text(flight, "flight_iata"), text(flight, "dep_iata"), text(flight, "arr_iata"))));
