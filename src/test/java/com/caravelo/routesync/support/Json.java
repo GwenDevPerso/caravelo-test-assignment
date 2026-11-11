@@ -1,6 +1,6 @@
 package com.caravelo.routesync.support;
 
-import com.caravelo.routesync.core.TenantSourceConfig;
+import com.caravelo.routesync.core.model.TenantSourceConfig;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;

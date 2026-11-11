@@ -9,15 +9,15 @@ import java.util.Set;
 import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.caravelo.routesync.core.CanonicalRoute;
-import com.caravelo.routesync.core.IataCodes;
-import com.caravelo.routesync.core.MappingIssue;
-import com.caravelo.routesync.core.RouteSourceAdapter;
-import com.caravelo.routesync.core.RouteType;
-import com.caravelo.routesync.core.SourceFetchException;
-import com.caravelo.routesync.core.SourceHttpClient;
-import com.caravelo.routesync.core.SourceResult;
-import com.caravelo.routesync.core.TenantSourceConfig;
+import com.caravelo.routesync.core.exception.SourceFetchException;
+import com.caravelo.routesync.core.model.CanonicalRoute;
+import com.caravelo.routesync.core.model.MappingIssue;
+import com.caravelo.routesync.core.model.SourceResult;
+import com.caravelo.routesync.core.model.TenantSourceConfig;
+import com.caravelo.routesync.core.service.RouteSourceAdapter;
+import com.caravelo.routesync.core.service.SourceHttpClient;
+import com.caravelo.routesync.core.type.RouteType;
+import com.caravelo.routesync.core.util.IataCodes;
 
 import tools.jackson.databind.JsonNode;
 

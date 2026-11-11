@@ -1,16 +1,16 @@
 package com.caravelo.routesync.adapter.jsonmapping;
 
-import static com.caravelo.routesync.core.RouteType.DIRECT;
+import static com.caravelo.routesync.core.type.RouteType.DIRECT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 
-import com.caravelo.routesync.core.CanonicalRoute;
-import com.caravelo.routesync.core.MappingIssue;
-import com.caravelo.routesync.core.SourceFetchException;
-import com.caravelo.routesync.core.SourceHttpClient;
-import com.caravelo.routesync.core.SourceResult;
-import com.caravelo.routesync.core.TenantSourceConfig;
+import com.caravelo.routesync.core.exception.SourceFetchException;
+import com.caravelo.routesync.core.model.CanonicalRoute;
+import com.caravelo.routesync.core.model.MappingIssue;
+import com.caravelo.routesync.core.model.SourceResult;
+import com.caravelo.routesync.core.model.TenantSourceConfig;
+import com.caravelo.routesync.core.service.SourceHttpClient;
 import com.caravelo.routesync.support.Json;
 import java.util.HashMap;
 import java.util.List;

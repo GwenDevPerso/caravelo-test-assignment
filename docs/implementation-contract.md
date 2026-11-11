@@ -17,6 +17,23 @@ implementation provides exactly this. Root package: `com.caravelo.routesync`. Ja
 
 Rule (AC17): no class outside `..adapter..` depends on a class in `..adapter..`.
 
+Inside `core` and `sync`, classes are grouped by kind:
+
+```
+core.model      CanonicalRoute, MappingIssue, SourceResult, TenantSourceConfig
+core.type       RouteType
+core.service    RouteSourceAdapter, SourceHttpClient
+core.exception  SourceFetchException
+core.config     SyncProperties
+core.util       IataCodes
+sync.service    SyncService, HealthService, NetworkDiff, AntiWipeGuard
+sync.model      RouteChange, SyncRunView, TenantHealth
+sync.type       ChangeType, SyncStatus
+sync.exception  SyncInProgressException, TenantDisabledException, TenantNotFoundException
+sync.scheduling StartupSync, TenantSyncScheduler
+sync.config     ClockConfiguration
+```
+
 ## `core`
 
 ```java
@@ -40,7 +57,7 @@ public class SourceFetchException extends RuntimeException {
 }
 ```
 
-`SourceHttpClient` (Spring bean in `core`): `JsonNode getJson(URI uri)` — timeouts, retries with backoff (SPEC §4.1),
+`SourceHttpClient` (Spring bean in `core.service`): `JsonNode getJson(URI uri)` — timeouts, retries with backoff (SPEC §4.1),
 a non-JSON body or non-2xx status becomes a `SourceFetchException`.
 
 ## Adapters

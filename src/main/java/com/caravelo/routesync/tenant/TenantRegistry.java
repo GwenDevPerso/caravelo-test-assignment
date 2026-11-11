@@ -13,8 +13,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
-import com.caravelo.routesync.core.RouteSourceAdapter;
-import com.caravelo.routesync.core.TenantSourceConfig;
+import com.caravelo.routesync.core.model.TenantSourceConfig;
+import com.caravelo.routesync.core.service.RouteSourceAdapter;
 
 /**
  * Resolves each configured tenant's sources to adapters by {@code type()}. A tenant whose config is invalid

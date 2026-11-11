@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.caravelo.routesync.sync.RouteChange;
-import com.caravelo.routesync.sync.SyncRunView;
+import com.caravelo.routesync.sync.model.RouteChange;
+import com.caravelo.routesync.sync.model.SyncRunView;
 
 /** Applies a sync atomically: routes, change log and run result commit together or not at all. */
 @Component

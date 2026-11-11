@@ -16,16 +16,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.caravelo.routesync.core.IataCodes;
-import com.caravelo.routesync.core.RouteType;
+import com.caravelo.routesync.core.type.RouteType;
+import com.caravelo.routesync.core.util.IataCodes;
 import com.caravelo.routesync.persistence.ChangeRepository;
 import com.caravelo.routesync.persistence.RouteRepository;
-import com.caravelo.routesync.sync.ChangeType;
-import com.caravelo.routesync.sync.HealthService;
-import com.caravelo.routesync.sync.SyncRunView;
-import com.caravelo.routesync.sync.SyncService;
-import com.caravelo.routesync.sync.TenantHealth;
-import com.caravelo.routesync.sync.TenantNotFoundException;
+import com.caravelo.routesync.sync.exception.TenantNotFoundException;
+import com.caravelo.routesync.sync.model.SyncRunView;
+import com.caravelo.routesync.sync.model.TenantHealth;
+import com.caravelo.routesync.sync.service.HealthService;
+import com.caravelo.routesync.sync.service.SyncService;
+import com.caravelo.routesync.sync.type.ChangeType;
 import com.caravelo.routesync.tenant.TenantRegistry;
 
 /** REST API of SPEC §6.2. */
